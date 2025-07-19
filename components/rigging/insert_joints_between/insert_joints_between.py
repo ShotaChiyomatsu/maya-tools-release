@@ -1,16 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
-from PySide6 import QtWidgets 
-from PySide6 import QtCore 
-from PySide6.QtCore import Qt
+from PySide6 import QtWidgets, QtCore
 from maya.app.general import mayaMixin
 import maya.cmds as cmds
 from importlib import *
-
-try:
-    G.close()
-except:
-    pass
 
 class Gui(mayaMixin.MayaQWidgetBaseMixin, QtWidgets.QDialog):
     
@@ -88,12 +81,24 @@ class Gui(mayaMixin.MayaQWidgetBaseMixin, QtWidgets.QDialog):
 
         cmds.undoInfo(closeChunk=True)
 
-G = 0
 def main():
     global G
+    try:
+        G.close()
+        G.deleteLater()
+    except:
+        pass
+
     G = Gui()
     G.show()
 
 if __name__ == '__main__':
+    global G
+    try:
+        G.close()
+        G.deleteLater()
+    except:
+        pass
+    
     G = Gui()
     G.show()
