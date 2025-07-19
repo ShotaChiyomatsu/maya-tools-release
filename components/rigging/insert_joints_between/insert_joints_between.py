@@ -1,38 +1,34 @@
 # -*- coding: utf-8 -*-
+import os
+from PySide6 import QtWidgets 
+from PySide6 import QtCore 
+from PySide6.QtCore import Qt
+from maya.app.general import mayaMixin
 import maya.cmds as cmds
-from PySide2.QtWidgets import * 
-from PySide2.QtGui import *
-from PySide2.QtCore import * 
-from PySide2.QtCore import Qt
-from shiboken2 import wrapInstance
-from maya import OpenMayaUI
+from importlib import *
 
 try:
     G.close()
 except:
     pass
 
-def baseWindow():
-    mainWindow = OpenMayaUI.MQtUtil.mainWindow()
-    return wrapInstance(int(mainWindow), QWidget)
-
-class Gui(QDialog):
+class Gui(mayaMixin.MayaQWidgetBaseMixin, QtWidgets.QDialog):
     
-    def __init__(self, parent=baseWindow()):
+    def __init__(self, parent=None):
         super(Gui, self).__init__(parent)
-        self.setWindowFlags(Qt.Dialog|Qt.WindowCloseButtonHint)
-        self.setWindowTitle("InsertJointsBetween")
-        self.UiDesign()
+        self.setWindowFlags(QtCore.Qt.Dialog|QtCore.Qt.WindowCloseButtonHint)
+        self.setWindowTitle(os.path.splitext(os.path.basename(__file__))[0].replace('_', ' ').title().replace(' ', ''))
+        self.ui_design()
     
-    def UiDesign(self):
-        outputLayout = QHBoxLayout(self)
-        self.label = QLabel("Joints :")
-        self.check = QCheckBox("Chain")
-        self.spin = QSpinBox()
+    def ui_design(self):
+        outputLayout = QtWidgets.QHBoxLayout(self)
+        self.label = QtWidgets.QLabel("Joints :")
+        self.check = QtWidgets.QCheckBox("Chain")
+        self.spin = QtWidgets.QSpinBox()
         self.spin.setMinimum(1)
         self.spin.setMinimumWidth(40)
         self.spin.setMaximumWidth(40)
-        self.button = QPushButton("Insert")
+        self.button = QtWidgets.QPushButton("Insert")
         self.button.setMinimumWidth(100)
         self.button.setMaximumWidth(100)
         outputLayout.addWidget(self.label)
@@ -40,9 +36,9 @@ class Gui(QDialog):
         outputLayout.addWidget(self.check)
         outputLayout.addWidget(self.button)
         self.setStyleSheet("font-weight:bold;")
-        self.button.clicked.connect(self.InsertJointsBetween)  
+        self.button.clicked.connect(self.insert_joints_between)  
 
-    def InsertJointsBetween(self):
+    def insert_joints_between(self):
         cmds.undoInfo(openChunk=True)
         selection = cmds.ls(sl=True)
         if len(selection) == 2 and all(cmds.objectType(obj) == 'joint' for obj in selection) : 
@@ -89,7 +85,7 @@ class Gui(QDialog):
 
         else:
             cmds.inViewMessage(amg='<h><font color="#FF0000">{}</hl>'.format("Selection Error"), pos='topCenter', fade=True, a=0.2)
-   
+
         cmds.undoInfo(closeChunk=True)
 
 G = 0
