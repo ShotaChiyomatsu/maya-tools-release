@@ -4,7 +4,7 @@ from maya import cmds
 
 def main():
     # Maya上部にメニューバーを追加
-    menu_name = "Tools"
+    menu_name = "ChiyoTools"
     cmds.menu(label=menu_name, parent="MayaWindow", tearOff=True)
 
     # 設定に必要なディレクトリを取得
