@@ -1,14 +1,23 @@
+# -*- coding: utf-8 -*-
+
+# Internal
+import os
 import re
 from maya import cmds
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
 from PySide6 import QtWidgets, QtCore
+from importlib import *
+
+# Custom
+from config import styles
+reload(styles)
 
 class Gui(MayaQWidgetBaseMixin, QtWidgets.QDialog):
 
     def __init__(self, parent=None):
         super(Gui, self).__init__(parent)
         self.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.WindowCloseButtonHint)
-        self.setWindowTitle("Rename")
+        self.setWindowTitle(os.path.splitext(os.path.basename(__file__))[0].replace('_', ' ').title().replace(' ', ''))
         self.ui_design()
 
     def ui_design(self):
@@ -19,13 +28,11 @@ class Gui(MayaQWidgetBaseMixin, QtWidgets.QDialog):
         self.count_start.setPrefix("0")
         self.branch_button = QtWidgets.QPushButton("Branch")
         group_setting = QtWidgets.QGroupBox("Setting")
-        layout_setting = QtWidgets.QGridLayout()
-        layout_setting.addWidget(self.number_check, 0, 0)
-        layout_setting.addWidget(self.count_start, 0, 1)
-        layout_setting.addWidget(self.branch_button, 0, 2)
+        layout_setting = QtWidgets.QHBoxLayout()
+        layout_setting.addWidget(self.number_check)
+        layout_setting.addWidget(self.count_start)
+        layout_setting.addWidget(self.branch_button)
         group_setting.setLayout(layout_setting)
-        group_setting.setStyleSheet("font-weight:bold")
-        group_setting.setMaximumHeight(55)
 
         group_edit = QtWidgets.QGroupBox("Edit")
         layout_edit = QtWidgets.QGridLayout()
@@ -36,16 +43,14 @@ class Gui(MayaQWidgetBaseMixin, QtWidgets.QDialog):
             layout_edit.addWidget([self.name_edit, self.prefix_edit, self.suffix_edit, self.search_edit, self.replace_edit][i], i, 1)
 
         group_edit.setLayout(layout_edit)
-        group_edit.setStyleSheet("font-weight:bold")
-
         output_layout.addWidget(group_setting)
         output_layout.addWidget(group_edit)
-
         self.branch_button.clicked.connect(self.branch_select)
         self.name_edit.returnPressed.connect(self.name_set)
         self.prefix_edit.returnPressed.connect(self.prefix_set)
         self.suffix_edit.returnPressed.connect(self.suffix_set)
         self.replace_edit.returnPressed.connect(self.replace_set)
+        self.setStyleSheet(styles.apply_dark_style())
 
     def branch_select(self):
         cmds.undoInfo(openChunk=True)

@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
+
+# Internal
 import os
 from maya import cmds
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
 from PySide6 import QtWidgets, QtCore
+from importlib import *
+
+# Custom
+from config import styles
+reload(styles)
 
 class Gui(MayaQWidgetBaseMixin, QtWidgets.QDialog):
     
@@ -10,6 +17,7 @@ class Gui(MayaQWidgetBaseMixin, QtWidgets.QDialog):
         super(Gui, self).__init__(parent)
         self.setWindowFlags(QtCore.Qt.Dialog|QtCore.Qt.WindowCloseButtonHint)
         self.setWindowTitle(os.path.splitext(os.path.basename(__file__))[0].replace('_', ' ').title().replace(' ', ''))
+        self.setMinimumWidth(280)
         self.ui_design()
     
     def ui_design(self):
@@ -22,7 +30,7 @@ class Gui(MayaQWidgetBaseMixin, QtWidgets.QDialog):
         outputLayout.addWidget(self.spinBox)
         outputLayout.addWidget(self.button)
         self.button.clicked.connect(lambda:check_max_influence(self.spinBox.value()))  
-        self.setStyleSheet("font-weight:bold") 
+        self.setStyleSheet(styles.apply_dark_style()) 
 
 def check_max_influence(max_influence):
     exceeding_vertices = []

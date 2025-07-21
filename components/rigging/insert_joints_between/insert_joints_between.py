@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
+
+# Internal
 import os
 from PySide6 import QtWidgets, QtCore
 from maya.app.general import mayaMixin
 import maya.cmds as cmds
 from importlib import *
+
+# Custom
+from config import styles
+reload(styles)
 
 class Gui(mayaMixin.MayaQWidgetBaseMixin, QtWidgets.QDialog):
     
@@ -28,8 +34,8 @@ class Gui(mayaMixin.MayaQWidgetBaseMixin, QtWidgets.QDialog):
         outputLayout.addWidget(self.spin)
         outputLayout.addWidget(self.check)
         outputLayout.addWidget(self.button)
-        self.setStyleSheet("font-weight:bold;")
         self.button.clicked.connect(self.insert_joints_between)  
+        self.setStyleSheet(styles.apply_dark_style())
 
     def insert_joints_between(self):
         cmds.undoInfo(openChunk=True)
