@@ -18,6 +18,7 @@ class Gui(MayaQWidgetBaseMixin, QtWidgets.QDialog):
         super(Gui, self).__init__(parent)
         self.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.WindowCloseButtonHint)
         self.setWindowTitle(os.path.splitext(os.path.basename(__file__))[0].replace('_', ' ').title().replace(' ', ''))
+        self.setMinimumWidth(270)
         self.ui_design()
 
     def ui_design(self):
