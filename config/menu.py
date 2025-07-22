@@ -29,9 +29,10 @@ def main():
         tool_path = components_path + component
         tools = [d for d in os.listdir(tool_path) if os.path.isdir(os.path.join(tool_path, d))] 
         for tool in tools:
+            tool_label = tool.replace('_', ' ').title().replace(' ', '')
             command = "from importlib import *\nimport components.%s.%s.%s as %s\nreload(%s)\n%s.main()" % ((component,) + (tool,) * 5)
-            help_command = "import webbrowser\nwebbrowser.open('https://github.com/ShotaChiyomatsu/maya-tools-release', new=2, autoraise=True)"
-            cmds.menuItem(label=tool.replace('_', ' ').title().replace(' ', ''), command=command)
+            help_command = "import webbrowser\nwebbrowser.open('https://github.com/ShotaChiyomatsu/chiyo-tools/wiki/%s', new=2, autoraise=True)" % (tool_label)
+            cmds.menuItem(label=tool_label, command=command)
             cmds.menuItem(optionBox=True, optionBoxIcon="%s\icons\help.png" % (config_path), command=help_command)
         
         cmds.setParent("..", menu=True)
@@ -39,4 +40,4 @@ def main():
     # ドキュメントを追加
     cmds.menuItem(divider=True, dividerLabel="Help")
     cmds.menuItem(label="Document", image="%s\icons\info.png" % (config_path),
-    command="import webbrowser\nwebbrowser.open('https://github.com/ShotaChiyomatsu/maya-tools-release', new=2, autoraise=True)")
+    command="import webbrowser\nwebbrowser.open('https://github.com/ShotaChiyomatsu/chiyo-tools/wiki', new=2, autoraise=True)")
