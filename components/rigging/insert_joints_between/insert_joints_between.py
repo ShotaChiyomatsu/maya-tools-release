@@ -2,10 +2,13 @@
 
 # Internal
 import os
-from PySide6 import QtWidgets, QtCore
-from maya.app.general import mayaMixin
-import maya.cmds as cmds
 from importlib import *
+import maya.cmds as cmds
+from maya.app.general import mayaMixin
+try:
+    from PySide6 import QtWidgets, QtCore
+except ImportError:
+    from PySide2 import QtWidgets, QtCore
 
 # Custom
 from config import styles

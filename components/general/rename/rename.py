@@ -3,10 +3,13 @@
 # Internal
 import os
 import re
+from importlib import *
 from maya import cmds
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
-from PySide6 import QtWidgets, QtCore
-from importlib import *
+try:
+    from PySide6 import QtWidgets, QtCore
+except ImportError:
+    from PySide2 import QtWidgets, QtCore
 
 # Custom
 from config import styles
@@ -16,7 +19,7 @@ class Gui(MayaQWidgetBaseMixin, QtWidgets.QDialog):
 
     def __init__(self, parent=None):
         super(Gui, self).__init__(parent)
-        self.setWindowFlags(QtCore.Qt.Dialog | QtCore.Qt.WindowCloseButtonHint)
+        self.setWindowFlags(QtCore.Qt.Dialog|QtCore.Qt.WindowCloseButtonHint)
         self.setWindowTitle(os.path.splitext(os.path.basename(__file__))[0].replace('_', ' ').title().replace(' ', ''))
         self.setMinimumWidth(270)
         self.ui_design()
