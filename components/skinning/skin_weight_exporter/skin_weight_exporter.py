@@ -197,10 +197,10 @@ class Gui(MayaQWidgetBaseMixin, QtWidgets.QDialog):
                                 cmds.skinCluster(skin_cluster[0], e=True, nw=1)
                         else:
                             # エラー時のメッセージを表示
-                            print("バインドを解除してから実行して下さい：%s" % (element))
+                            print("ジョイントをメッシュにバインドしてから実行して下さい：%s" % (element))
             else:
                 # エラー時のメッセージを表示
-                print("ファイルは存在しません")
+                print("ウェイト情報のファイルが存在しません：%s" % (element))
             
             # プログレスバーを進める
             cmds.progressBar(self.help_line, edit=True, step=1)
@@ -209,7 +209,7 @@ class Gui(MayaQWidgetBaseMixin, QtWidgets.QDialog):
         cmds.progressBar(self.help_line, edit=True, endProgress=True)
         cmds.inViewMessage(amg='<h><font color="#5AFF19">ウェイト値のインポートが完了しました!!</hl>',
         pos='topCenter', fade=True, a=0.2)
-        cmds.undoInfo(endChunk=True)
+        cmds.undoInfo(closeChunk=True)
 
 def main():
     global g
