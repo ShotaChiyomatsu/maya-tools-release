@@ -3,7 +3,6 @@
 # Internal
 import os
 import json
-import traceback
 from importlib import *
 from maya import cmds, mel
 from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
@@ -103,6 +102,7 @@ class Gui(MayaQWidgetBaseMixin, QtWidgets.QDialog):
                 cmds.inViewMessage(amg='<h><font color="#FFFF66">スキンクラスターが存在しません：{}</hl>'.format(mesh), 
                 pos='topCenter', fade=True, a=0.2)
         else:
+            # プログレスバーを表示
             mesh_count = len(selection)
             cmds.progressBar(self.help_line, e=True, bp=True, status="Export...", min=0, max=mesh_count, ii=False)
             object_type = "Mesh"
@@ -150,57 +150,75 @@ class Gui(MayaQWidgetBaseMixin, QtWidgets.QDialog):
     def weight_import(self):
         cmds.undoInfo(openChunk=True)
         selection = cmds.ls(sl=True)
-        mesh_count = len(selection)
-        cmds.progressBar(self.help_line, e=True, bp=True, status="Import...", min=0, max=mesh_count, ii=False)
+        # ファイルが存在しているか確認
+        json_path_list = []
+        selection_list = []
+        vtx_count = 0
         for element in selection:
             json_path = "%s\\%s.json" % (self.line_edit.text(), element)
             if os.path.exists(json_path):
+                json_path_list.append(json_path)
+                selection_list.append(element)
                 with open(json_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                    joints = data["Joints"]
                     weights = data["Weights"]
-                    if data["Type"] == "Mesh":
-                        skin_cluster = cmds.ls(cmds.listHistory(element), type="skinCluster")
-                        if not skin_cluster:
-                            # スキンクラスターを作成
-                            skin_cluster = cmds.skinCluster(joints, element, n="SC_" + element, tsb=True)[0]
-                            # ポストに変更
-                            cmds.skinCluster(skin_cluster, e=True, nw=2)
-                            # ウェイトを転送
-                            for i in range(len(weights)):
-                                tv_values = list(zip(joints, weights[i]))
-                                cmds.skinPercent(skin_cluster, "%s.vtx[%d]" % (element, i), tv=tv_values)
-                            # インタラクティブに変更
-                            cmds.skinCluster(skin_cluster, e=True, nw=1)
-                        else:
-                            # エラー時のメッセージを表示
-                            print("バインドを解除してから実行して下さい：%s" % (element))
-                    else:
-                        skin_cluster = cmds.ls(cmds.listHistory(element), type="skinCluster")
-                        if skin_cluster:
-                            # 現在のジョイントの情報を取得
-                            current_joints = cmds.listConnections(skin_cluster[0] + ".matrix", s=True, t="joint")
-                            missing = set(current_joints) - set(joints)
-                            # ジョイントの情報が一致しなければループを抜ける
-                            if missing:
-                                print("ジョイントの情報が一致しません：%s" % (element))
-                                continue
-                            # 頂点番号を取得
-                            vertex_number = data["VertexNumber"]
-                            # ポストに変更
-                            cmds.skinCluster(skin_cluster[0], e=True, nw=2)
-                            # ウェイトを転送
-                            for i in range(len(weights)):
-                                tv_values = list(zip(joints, weights[i]))
-                                cmds.skinPercent(skin_cluster[0], "%s.%s" % (element, vertex_number[i]), tv=tv_values)
-                            # インタラクティブに変更
-                                cmds.skinCluster(skin_cluster[0], e=True, nw=1)
-                        else:
-                            # エラー時のメッセージを表示
-                            print("ジョイントをメッシュにバインドしてから実行して下さい：%s" % (element))
+                    vtx_count += len(weights)
             else:
                 # エラー時のメッセージを表示
                 print("ウェイト情報のファイルが存在しません：%s" % (element))
+        
+        # プログレスバーを表示
+        cmds.progressBar(self.help_line, e=True, bp=True, status="Import...", min=0, max=vtx_count, ii=False)
+
+        # ウェイト値をインポート
+        for mesh, json_file in zip(selection_list, json_path_list):
+            with open(json_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                joints = data["Joints"]
+                weights = data["Weights"]
+                if data["Type"] == "Mesh":
+                    skin_cluster = cmds.ls(cmds.listHistory(mesh), type="skinCluster")
+                    if not skin_cluster:
+                        # スキンクラスターを作成
+                        skin_cluster = cmds.skinCluster(joints, mesh, n="SC_" + mesh, tsb=True)[0]
+                        # ポストに変更
+                        cmds.skinCluster(skin_cluster, e=True, nw=2)
+                        # ウェイトを転送
+                        for i in range(len(weights)):
+                            tv_values = list(zip(joints, weights[i]))
+                            cmds.skinPercent(skin_cluster, "%s.vtx[%d]" % (mesh, i), tv=tv_values)
+                            # プログレスバーを進める
+                            cmds.progressBar(self.help_line, edit=True, step=1)
+                        # インタラクティブに変更
+                        cmds.skinCluster(skin_cluster, e=True, nw=1)
+                    else:
+                        # エラー時のメッセージを表示
+                        print("バインドを解除してから実行して下さい：%s" % (mesh))
+                else:
+                    skin_cluster = cmds.ls(cmds.listHistory(mesh), type="skinCluster")
+                    if skin_cluster:
+                        # 現在のジョイントの情報を取得
+                        current_joints = cmds.listConnections(skin_cluster[0] + ".matrix", s=True, t="joint")
+                        missing = set(current_joints) - set(joints)
+                        # ジョイントの情報が一致しなければループを抜ける
+                        if missing:
+                            print("ジョイントの情報が一致しません：%s" % (mesh))
+                            continue
+                        # 頂点番号を取得
+                        vertex_number = data["VertexNumber"]
+                        # ポストに変更
+                        cmds.skinCluster(skin_cluster[0], e=True, nw=2)
+                        # ウェイトを転送
+                        for i in range(len(weights)):
+                            tv_values = list(zip(joints, weights[i]))
+                            cmds.skinPercent(skin_cluster[0], "%s.%s" % (mesh, vertex_number[i]), tv=tv_values)
+                            # プログレスバーを進める
+                            cmds.progressBar(self.help_line, edit=True, step=1)
+                        # インタラクティブに変更
+                            cmds.skinCluster(skin_cluster[0], e=True, nw=1)
+                    else:
+                        # エラー時のメッセージを表示
+                        print("ジョイントをメッシュにバインドしてから実行して下さい：%s" % (mesh))
             
             # プログレスバーを進める
             cmds.progressBar(self.help_line, edit=True, step=1)
